@@ -1,0 +1,39 @@
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1">
+             <button onClick={undo} className="p-2 hover:bg-[#222] rounded text-gray-300 hover:text-white transition-colors" title="Undo (Ctrl+Z)"><Undo2 className="w-5 h-5" /></button>
+            <button onClick={redo} className="p-2 hover:bg-[#222] rounded text-gray-300 hover:text-white transition-colors" title="Redo (Ctrl+Y)"><Redo2 className="w-5 h-5" /></button>
+            <div className="h-4 w-[1px] bg-[#333] mx-2" />
+            <button onClick={() => setTool('eraser')} className={`p-2 rounded transition-colors ${tool === 'eraser' ? 'bg-blue-600 text-white' : 'hover:bg-[#222] text-gray-300 hover:text-white'}`} title="Eraser Tool"><Eraser className="w-5 h-5" /></button>
+            <button onClick={clearAll} className="p-2 hover:bg-red-900/30 rounded text-gray-300 hover:text-red-400 transition-colors" title="Clear All (Del)"><Trash2 className="w-5 h-5" /></button>
+        </div>
+
+        <div className="flex-1" />
+
+        <div className="flex items-center">
+            <button 
+                onClick={toggleScreenRecording} 
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full font-bold text-sm tracking-wide transition-all shadow-md border ${isScreenRecording ? 'bg-red-600 hover:bg-red-700 text-white border-red-500 animate-pulse ring-2 ring-red-500/50' : 'bg-[#1a1a1a] hover:bg-[#222] text-gray-300 hover:text-white border-[#333] hover:border-red-500/50 hover:text-red-400'}`}
+                title={isScreenRecording ? 'Stop Recording' : 'Record Video Canvas'}
+            >
+                <div className={`w-2.5 h-2.5 rounded-full ${isScreenRecording ? 'bg-white' : 'bg-red-500'}`} />
+                {isScreenRecording ? 'RECORDING' : 'RECORD'}
+            </button>
+        </div>
+
+        {/* Right: Colors */}
+        <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4 custom-scrollbar">
+                {colors.map((color) => (
+                <button
+                    key={color.id}
+                    onClick={() => setActiveColorId(color.id)}
+                    onContextMenu={(e) => handleColorRightClick(e, color.id)}
+                    className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${activeColorId === color.id ? 'border-white scale-125' : 'border-transparent ring-1 ring-white/10'}`}
+                    style={{ backgroundColor: color.value }}
+                    title="Left-click to select, Right-click to edit"
+                />
+                ))}
+            </div>
+        </div>
+      </motion.div>
+      )}

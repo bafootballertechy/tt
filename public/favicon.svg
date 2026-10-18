@@ -1,0 +1,22 @@
+<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+  <rect width="240" height="240" rx="54" fill="#111"/>
+  
+  <!-- Spirograph base simplified for visibility at small sizes -->
+  <g fill="none" stroke="#c6ff1f" stroke-width="6">
+    <rect x="50" y="50" width="140" height="140" rx="16" opacity="0.15" transform="rotate(0, 120, 120)"/>
+    <rect x="50" y="50" width="140" height="140" rx="16" opacity="0.25" transform="rotate(30, 120, 120)"/>
+    <rect x="50" y="50" width="140" height="140" rx="16" opacity="0.40" transform="rotate(60, 120, 120)"/>
+  </g>
+  
+  <!-- Core data line -->
+  <path d="M 50 170 L 95 105 L 145 135 L 190 75" fill="none" stroke="#c6ff1f" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Nodes -->
+  <circle cx="50" cy="170" r="14" fill="#111" stroke="#c6ff1f" stroke-width="8"/>
+  <circle cx="95" cy="105" r="14" fill="#111" stroke="#c6ff1f" stroke-width="8"/>
+  <circle cx="145" cy="135" r="14" fill="#111" stroke="#c6ff1f" stroke-width="8"/>
+  
+  <!-- Final highlight node in white to match brand (TacStem text uses white) -->
+  <circle cx="190" cy="75" r="18" fill="#fff"/>
+  <circle cx="190" cy="75" r="32" fill="#fff" opacity="0.2"/>
+</svg>

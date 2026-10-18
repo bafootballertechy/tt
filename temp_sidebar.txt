@@ -1,0 +1,260 @@
+        {/* --- RIGHT SIDEBAR --- */}
+        {!showSetupModal && !editingAnimationFFId && (
+        <motion.div 
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            ref={sidebarRef} 
+            className="flex flex-col bg-[#111] border-l border-[#222] z-30 shrink-0 relative" 
+            style={{ width: sidebarWidth }}
+        >
+             <div className="absolute top-0 bottom-0 -left-1 w-2 cursor-ew-resize hover:bg-blue-500/50 transition-colors z-50" onMouseDown={() => setIsResizingSidebar(true)} />
+             
+             {/* Main Tabs */}
+             <div className="flex border-b border-[#222] shrink-0 bg-[#0a0a0a]">
+                <button onClick={() => setActiveSidebarTab('tags')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider ${activeSidebarTab === 'tags' ? 'text-blue-400 bg-[#161616] border-t border-t-blue-500' : 'text-gray-500 hover:bg-[#111]'}`}>Tags</button>
+                <button onClick={() => setActiveSidebarTab('events')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider ${activeSidebarTab === 'events' ? 'text-blue-400 bg-[#161616] border-t border-t-blue-500' : 'text-gray-500 hover:bg-[#111]'}`}>Events</button>
+                <button onClick={() => setActiveSidebarTab('notes')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider ${activeSidebarTab === 'notes' ? 'text-blue-400 bg-[#161616] border-t border-t-blue-500' : 'text-gray-500 hover:bg-[#111]'}`}>Notes</button>
+                <button onClick={() => setActiveSidebarTab('playlist')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider ${activeSidebarTab === 'playlist' ? 'text-blue-400 bg-[#161616] border-t border-t-blue-500' : 'text-gray-500 hover:bg-[#111]'}`}>Playlist</button>
+             </div>
+
+             <div className="flex-1 overflow-hidden flex flex-col relative bg-[#111]">
+                 {activeSidebarTab === 'tags' && (
+                     <div className="flex flex-col h-full">
+                         {/* Compact Tagging Header */}
+                         <div className="px-2 py-1.5 border-b border-[#222] flex items-center justify-between shrink-0">
+                             <div className="flex items-center gap-2"><Tags className="w-3.5 h-3.5 text-blue-400" /><span className="text-[11px] font-bold text-white">Event Tagging</span></div>
+                             <div className="flex items-center gap-2">
+                                 <span className={`text-[9px] font-bold uppercase tracking-wider ${isTaggingMode ? 'text-red-500 animate-pulse' : 'text-gray-500'}`}>{isTaggingMode ? 'REC' : 'OFF'}</span>
+                                 <button onClick={() => { 
+                                     const nextMode = !isTaggingMode;
+                                     setIsTaggingMode(nextMode); 
+                                     setActiveRecording(null); 
+                                     if (nextMode) {
+                                         setTool(null);
+                                         setSelectedEventIds(new Set());
+                                     }
+                                 }} className={`w-7 h-4 rounded-full relative transition-colors ${isTaggingMode ? 'bg-red-500' : 'bg-gray-700'}`}>
+                                    <motion.div className="w-2.5 h-2.5 bg-white rounded-full absolute top-0.5" animate={{ left: isTaggingMode ? 'calc(100% - 12px)' : '2px' }} />
+                                 </button>
+                                 <div className="w-[1px] h-3 bg-[#333]"></div>
+                                 <button className="text-gray-400 hover:text-white" onClick={importEventsFromCSV} title="Import (CSV)"><Upload className="w-3.5 h-3.5" /></button>
+                                 <button className="text-gray-400 hover:text-white" onClick={exportEventsToCSV} title="Export (CSV)"><Download className="w-3.5 h-3.5" /></button>
+                                 <div className="w-[1px] h-3 bg-[#333]"></div>
+                                 <button className="text-gray-400 hover:text-white" onClick={() => setTagSettingsOpen(true)} title="Code Window"><Settings2 className="w-3.5 h-3.5" /></button>
+                             </div>
+                         </div>
+                         {/* Compact Tags Grid */}
+                         <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
+                            <div className="grid gap-1.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))' }}>
+                                 {tags.map(tag => {
+                                     const isActive = activeRecording?.tagId === tag.id;
+                                     const count = tagEvents.filter(e => e.tagId === tag.id).length;
+                                     const isFiltered = filterTagId === tag.id;
+                                     return (
+                                         <button key={tag.id} onClick={() => handleTagClick(tag.id)} className={`relative h-9 rounded border flex items-center justify-between px-1.5 transition-all overflow-hidden group ${isTaggingMode ? (isActive ? 'border-transparent bg-gray-800 scale-95 ring-1 ring-white' : 'border-[#333] bg-[#161616] hover:bg-[#222]') : (isFiltered ? 'border-transparent bg-[#222] ring-1 ring-white' : 'border-[#333] bg-[#161616] hover:bg-[#222]')}`} style={{ borderColor: (isActive || isFiltered) ? tag.color : undefined, boxShadow: isActive ? `0 0 10px ${fadeColor(tag.color, 0.2)}` : undefined }}>
+                                             <div className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ backgroundColor: tag.color }} />
+                                             <span className="text-[10px] font-medium text-gray-200 truncate ml-1">{tag.name}</span>
+                                             <div className="flex items-center gap-1">
+                                                <div className="flex items-center justify-center min-w-[16px] h-[16px] bg-[#333] rounded-sm text-[9px] font-bold text-gray-400 group-hover:text-white border border-[#444] px-0.5">{tag.shortcut}</div>
+                                                {!isTaggingMode && <span className="text-[9px] text-gray-600 font-mono">{count}</span>}
+                                             </div>
+                                             {isActive && <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+                                             {isTaggingMode && tag.leadLagEnabled && <div className="absolute bottom-0.5 right-0.5 opacity-50"><Zap className="w-2 h-2 text-yellow-500 fill-yellow-500" /></div>}
+                                         </button>
+                                     );
+                                 })}
+                             </div>
+                         </div>
+                     </div>
+                 )}
+
+                 {activeSidebarTab === 'events' && (
+                     <div className="flex flex-col h-full">
+                         <div className="px-2 py-1.5 border-b border-[#222] flex flex-wrap items-center justify-between gap-1 shrink-0">
+                             <div className="flex items-center gap-2">
+                                <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                                <span className="text-[11px] font-bold text-white">Events ({tagEvents.length})</span>
+                             </div>
+                             <div className="flex flex-wrap items-center gap-1.5">
+                                 <button onClick={handleUndoEvents} disabled={!canUndoEvents} className="text-gray-400 hover:text-white disabled:opacity-30 transition-colors" title="Undo Logging"><Undo2 className="w-3.5 h-3.5" /></button>
+                                 <button onClick={handleRedoEvents} disabled={!canRedoEvents} className="text-gray-400 hover:text-white disabled:opacity-30 transition-colors" title="Redo Logging"><Redo2 className="w-3.5 h-3.5" /></button>
+                                 <div className="w-[1px] h-3 bg-[#333] mx-0.5 hidden sm:block"></div>
+                                 <select value={eventSortMode} onChange={(e) => setEventSortMode(e.target.value as 'recent' | 'timing')} className="bg-[#222] border border-[#333] text-[9px] text-gray-300 rounded outline-none w-[55px] px-1 py-0.5">
+                                     <option value="recent">Recent</option>
+                                     <option value="timing">Timing</option>
+                                 </select>
+                                 <select value={filterTagId || ''} onChange={(e) => setFilterTagId(e.target.value || null)} className="bg-[#222] border border-[#333] text-[9px] text-gray-300 rounded outline-none w-[55px] px-1 py-0.5">
+                                     <option value="">All Tags</option>
+                                     {tags.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                 </select>
+                                 
+                                 {bulkDeleteConfirmation ? (
+                                     <div className="flex items-center gap-1 bg-[#161616] px-1 rounded shadow-lg border border-[#333]">
+                                         <button onClick={() => {
+                                             if (selectedEventLogs.size > 0) {
+                                                 setTagEvents(prev => prev.filter(e => !selectedEventLogs.has(e.id)));
+                                             } else {
+                                                 setTagEvents([]);
+                                             }
+                                             setSelectedEventLogs(new Set());
+                                             setIsEventsEditMode(false);
+                                             setBulkDeleteConfirmation(false);
+                                         }} className="text-green-400 hover:text-green-300 p-0.5" title="Confirm Delete"><Check className="w-3.5 h-3.5" /></button>
+                                         <button onClick={() => setBulkDeleteConfirmation(false)} className="text-red-400 hover:text-red-300 p-0.5" title="Cancel"><X className="w-3.5 h-3.5" /></button>
+                                     </div>
+                                 ) : isEventsEditMode ? (
+                                    <>
+                                        <button onClick={() => setBulkDeleteConfirmation(true)} className="text-red-400 hover:text-red-300 transition-colors bg-red-900/30 px-1.5 py-0.5 rounded flex items-center gap-1" title={selectedEventLogs.size > 0 ? "Delete Selected" : "Clear All Events"}><Trash2 className="w-3 h-3" /><span className="text-[9px] font-bold">{selectedEventLogs.size > 0 ? selectedEventLogs.size : 'All'}</span></button>
+                                        <button onClick={() => {
+                                            setSelectedEventLogs(new Set());
+                                            setIsEventsEditMode(false);
+                                        }} className="text-gray-400 hover:text-white transition-colors" title="Cancel Edit"><X className="w-3.5 h-3.5" /></button>
+                                    </>
+                                 ) : (
+                                    <button onClick={() => setIsEventsEditMode(true)} className="text-gray-500 hover:text-red-400 transition-colors" title="Delete Events"><Trash2 className="w-3.5 h-3.5" /></button>
+                                 )}
+                             </div>
+                         </div>
+                         <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar space-y-1">
+                             {getDisplayEvents().map(evt => {
+                                 const tag = tags.find(t => t.id === evt.tagId);
+                                 const isSelected = selectedEventLogs.has(evt.id);
+                                 const isConfirming = logDeleteConfirmation === evt.id;
+                                 return (
+                                     <div key={evt.id} className={`flex items-center gap-1.5 p-1.5 rounded border group cursor-pointer transition-colors ${isSelected ? 'bg-blue-900/20 border-blue-500/30' : 'bg-[#161616] hover:bg-[#222] border-transparent hover:border-[#333]'}`} onClick={(e) => {
+                                        if (isEventsEditMode || e.ctrlKey || e.metaKey || e.shiftKey) {
+                                            e.stopPropagation();
+                                            const newSet = new Set(selectedEventLogs);
+                                            if (newSet.has(evt.id)) newSet.delete(evt.id);
+                                            else newSet.add(evt.id);
+                                            setSelectedEventLogs(newSet);
+                                            if (!isEventsEditMode) setIsEventsEditMode(true);
+                                        } else {
+                                            jumpToMarker(evt.startTime);
+                                        }
+                                     }}>
+                                         {isEventsEditMode && (
+                                             <input type="checkbox" checked={isSelected} onChange={(e) => {
+                                                const newSet = new Set(selectedEventLogs);
+                                                if (e.target.checked) newSet.add(evt.id);
+                                                else newSet.delete(evt.id);
+                                                setSelectedEventLogs(newSet);
+                                             }} className="w-2.5 h-2.5 shrink-0 rounded border-[#444] bg-[#222] cursor-pointer" onClick={(e) => e.stopPropagation()} />
+                                         )}
+                                         <div className="w-[3px] self-stretch min-h-[16px] rounded-full shrink-0" style={{ backgroundColor: tag?.color }} />
+                                         
+                                         <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                                             <span className="text-[10px] font-medium text-gray-300 truncate max-w-[80px] shrink-0">{tag?.name}</span>
+                                             <div className="flex items-center gap-1 text-[9px] text-gray-500 font-mono shrink-0">
+                                                 <span>{new Date(evt.startTime * 1000).toISOString().substr(14, 5)} - {new Date(evt.endTime * 1000).toISOString().substr(14, 5)}</span>
+                                                 <span className="text-gray-600 bg-[#222] px-1 rounded text-[8px]">{((evt.endTime - evt.startTime)).toFixed(1)}s</span>
+                                             </div>
+                                         </div>
+
+                                         <div className="flex items-center justify-end shrink-0 ml-auto relative w-8">
+                                             {isConfirming ? (
+                                                <div className="flex items-center gap-1 bg-[#161616] px-1 rounded shadow-lg z-10 border border-[#333] absolute right-0">
+                                                    <button onClick={(e) => { e.stopPropagation(); setTagEvents(prev => prev.filter(x => x.id !== evt.id)); setLogDeleteConfirmation(null); }} className="text-green-400 hover:text-green-300 p-0.5"><Check className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); setLogDeleteConfirmation(null); }} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3.5 h-3.5" /></button>
+                                                </div>
+                                             ) : (
+                                                !isEventsEditMode && <button onClick={(e) => { e.stopPropagation(); setLogDeleteConfirmation(evt.id); }} className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 p-0.5 transition-opacity" title="Delete"><Trash className="w-3 h-3" /></button>
+                                             )}
+                                         </div>
+                                     </div>
+                                 );
+                             })}
+                         </div>
+                     </div>
+                 )}
+
+                 {activeSidebarTab === 'notes' && (
+                     <div className="flex flex-col h-full">
+                        <div className="px-2 py-1.5 border-b border-[#222] shrink-0">
+                            <span className="text-[11px] font-bold text-white flex items-center gap-1.5"><Pencil className="w-3 h-3 text-yellow-400"/> Project Notes</span>
+                        </div>
+                        <textarea 
+                            value={projectNotes}
+                            onChange={(e) => setProjectNotes(e.target.value)}
+                            placeholder="Add notes for this project..."
+                            className="flex-1 w-full bg-[#111] text-gray-300 text-xs p-3 outline-none resize-none custom-scrollbar placeholder-gray-600"
+                        />
+                     </div>
+                 )}
+
+                 {activeSidebarTab === 'playlist' && (
+                     <div className="flex flex-col h-full">
+                         {/* Playlists Header */}
+                         <div className="px-2 py-1.5 border-b border-[#222] flex items-center justify-between shrink-0">
+                             <div className="flex items-center gap-2"><ListPlus className="w-3.5 h-3.5 text-emerald-400" /><span className="text-[11px] font-bold text-white">Playlists</span></div>
+                             <button onClick={() => setPlaylistModal({ isOpen: true, mode: 'create', tempName: '' })} className="text-gray-400 hover:text-white" title="New Playlist"><FolderPlus className="w-3.5 h-3.5" /></button>
+                         </div>
+                         <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+                             <div className="p-1.5 space-y-0.5 shrink-0 max-h-[140px] overflow-y-auto custom-scrollbar border-b border-[#222]">
+                                 {playlists.map(pl => (
+                                     <div key={pl.id} className="group relative">
+                                         <button onClick={() => setActivePlaylistId(pl.id)} className={`w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-[10px] transition-colors pr-6 ${activePlaylistId === pl.id ? 'bg-[#222] text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]'}`}>
+                                             <Folder className={`w-3.5 h-3.5 ${activePlaylistId === pl.id ? 'text-blue-400 fill-blue-400/20' : ''}`} />
+                                             <span className="flex-1 text-left truncate">{pl.name}</span>
+                                             <span className="text-[9px] text-gray-600">{pl.events.length}</span>
+                                         </button>
+                                         <div className="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-[#222] rounded p-0.5 shadow">
+                                             <button onClick={(e) => { e.stopPropagation(); setPlaylistModal({ isOpen: true, mode: 'edit', playlistId: pl.id, tempName: pl.name }); }} className="p-0.5 hover:bg-[#333] rounded text-gray-400 hover:text-white"><Pencil className="w-3 h-3" /></button>
+                                             <button onClick={(e) => { e.stopPropagation(); setPlaylistDeleteId(pl.id); }} className="p-0.5 hover:bg-red-900/30 rounded text-gray-400 hover:text-red-400"><Trash className="w-3 h-3" /></button>
+                                         </div>
+                                     </div>
+                                 ))}
+                             </div>
+                             <div className="p-1.5 bg-[#141414] shrink-0 flex items-center justify-between border-b border-[#222]">
+                                 <div className="flex items-center gap-1.5 overflow-hidden"><Folder className="w-3 h-3 text-blue-500" /><span className="text-[10px] font-bold text-gray-300 truncate max-w-[80px]">{playlists.find(p => p.id === activePlaylistId)?.name}</span></div>
+                                 <div className="flex items-center gap-1">
+                                     {autoplay.active && autoplay.playlistId === activePlaylistId ? (
+                                         <button onClick={() => setAutoplay({ active: false, playlistId: null, eventIndex: -1 })} className="flex items-center gap-1 px-1.5 py-0.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-[9px] font-bold"><StopCircle className="w-3 h-3" /> Stop</button>
+                                     ) : (
+                                         <>
+                                             <div className="relative group/export flex gap-0.5">
+                                                 <button disabled={!playlists.find(p => p.id === activePlaylistId)?.events.length} className="flex items-center gap-1 px-1.5 py-0.5 bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded text-[9px] font-bold disabled:opacity-50"><Video className="w-3 h-3" /> Exp</button>
+                                                 <div className="absolute top-full right-0 mt-1 min-w-[130px] bg-[#222] border border-[#444] rounded shadow-2xl opacity-0 invisible group-hover/export:opacity-100 group-hover:visible group-hover/export:visible transition-all z-50 flex flex-col overflow-hidden">
+                                                     <button onClick={() => exportPlaylistVideo(activePlaylistId, true)} className="px-2 py-1.5 text-[10px] text-left text-gray-300 hover:bg-[#333] hover:text-white border-b border-[#333]">With Freeze</button>
+                                                     <button onClick={() => exportPlaylistVideo(activePlaylistId, false)} className="px-2 py-1.5 text-[10px] text-left text-gray-300 hover:bg-[#333] hover:text-white">No Freeze</button>
+                                                 </div>
+                                             </div>
+                                             <button onClick={() => startPlaylistAutoplay(activePlaylistId)} disabled={!playlists.find(p => p.id === activePlaylistId)?.events.length} className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded text-[9px] font-bold disabled:opacity-50"><PlayCircle className="w-3 h-3" /> Play</button>
+                                         </>
+                                     )}
+                                 </div>
+                             </div>
+                             <div className="flex-1 overflow-y-auto p-1.5 space-y-1 bg-[#0a0a0a] custom-scrollbar">
+                                 {playlists.find(p => p.id === activePlaylistId)?.events.map((eventId, i) => {
+                                     const evt = tagEvents.find(e => e.id === eventId);
+                                     if (!evt) return null;
+                                     const tag = tags.find(t => t.id === evt.tagId);
+                                     const isPlayingEvent = autoplay.active && autoplay.playlistId === activePlaylistId && autoplay.eventIndex === i;
+                                     return (
+                                         <div key={i} draggable onDragStart={(e) => { e.dataTransfer.setData('text/plain', i.toString()); e.dataTransfer.effectAllowed = 'move'; setDraggingEventIndex(i); }} onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }} onDrop={(e) => { e.preventDefault(); const fromIndex = parseInt(e.dataTransfer.getData('text/plain')); if (fromIndex !== i) { reorderPlaylistEvents(activePlaylistId, fromIndex, i); } setDraggingEventIndex(null); }} onClick={(e) => handleEventClick(e, evt.id, evt.startTime)} className={`flex flex-col gap-1 p-1.5 rounded border border-transparent group transition-all cursor-pointer ${isPlayingEvent ? 'bg-[#1a1a1a] border-blue-500/50' : (selectedEventIds.has(evt.id) ? 'bg-[#1a1a1a] border-blue-500/30' : 'bg-[#161616] hover:bg-[#222] hover:border-[#333]')} ${draggingEventIndex === i ? 'opacity-50 dashed border-gray-500' : ''}`}>
+                                             <div className="flex items-center gap-1.5">
+                                                <div className="cursor-grab text-gray-600 hover:text-gray-400"><GripVertical className="w-3 h-3" /></div>
+                                                <div className="w-[3px] h-3.5 rounded-full shrink-0" style={{ backgroundColor: tag?.color }} />
+                                                <div className="flex-1 min-w-0"><div className="text-[10px] font-medium text-gray-300 truncate">{tag?.name}</div></div>
+                                                <div className="text-[9px] text-gray-500 font-mono">{new Date(evt.startTime * 1000).toISOString().substr(14, 5)}</div>
+                                                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                                                    <button onClick={(e) => { e.stopPropagation(); jumpToMarker(evt.startTime); }} className="text-gray-400 hover:text-white p-0.5"><Play className="w-3 h-3" /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); removeEventFromPlaylist(activePlaylistId, i); }} className="text-gray-400 hover:text-red-400 p-0.5"><X className="w-3 h-3" /></button>
+                                                </div>
+                                             </div>
+                                             {evt.notes && (<div className="flex items-start gap-1 text-[9px] text-gray-400 pl-5 border-l-2 border-[#333] ml-1"><MessageSquare className="w-2.5 h-2.5 mt-0.5 shrink-0" /><span className="italic line-clamp-2">{evt.notes}</span></div>)}
+                                         </div>
+                                     );
+                                 })}
+                             </div>
+                             <div className="p-1.5 border-t border-[#222] flex gap-1 shrink-0 bg-[#111]">
+                                 <button id="save-playlist-btn" onClick={addSelectedToPlaylist} className="flex-1 bg-[#222] hover:bg-[#333] text-white text-[10px] font-bold py-1.5 rounded flex items-center justify-center gap-1 transition-colors border border-[#333]"><Save className="w-3 h-3" /> Add Sel (Ctrl+S)</button>
+                             </div>
+                         </div>
+                     </div>
+                 )}
+             </div>
+        </motion.div>
+        )}
+      </div>
